@@ -269,9 +269,9 @@ def generate_ssh_command(config, target_hostname):
     # Use SSH control persistence to keep sessions alive for subsequent commands
     if config["persist_time"] > 0:
         ssh_command.extend(["-o", "ControlMaster=auto"])
-        ssh_command.extend(
-            ["-o", f"ControlPath={config['persist_dir']}/ssh-%r@%h:%p"]
-        )
+        #ssh_command.extend(
+        #    ["-o", f"ControlPath={config['persist_dir']}/ssh-%r@%h:%p"]
+        #)
         ssh_command.extend(["-o", f"ControlPersist={config['persist_time']}"])
 
     # Add the remote config args
@@ -352,9 +352,9 @@ def get_target_host(config):
     for hid, host in host_mappings.items():
         log.debug(f"Trying host ID {hid} '{host['hostname']}'")
         # If it's marked as bad, continue
-        if host["current_state"] == "bad":
-            log.debug(f"Host previously marked bad by PID {host['marking_pid']}")
-            continue
+        #if host["current_state"] == "bad":
+        #    log.debug(f"Host previously marked bad by PID {host['marking_pid']}")
+        #    continue
 
         # Try to connect to the host and run a very quick command to determine if it is workable
         if host["hostname"] not in ["localhost", "127.0.0.1"]:
@@ -366,16 +366,16 @@ def get_target_host(config):
             ret = run_command(test_ssh_command + test_ffmpeg_command, PIPE, PIPE, PIPE)
             if ret.returncode != 0:
                 # Mark the host as bad
-                log.warning(f"Marking host {host['hostname']} ({host['servername']}) as bad due to retcode {ret.returncode}")
+                log.warning(f"Logging host {host['hostname']} ({host['servername']}) as bad due to retcode {ret.returncode}")
                 log.debug(f"SSH test command was: {' '.join(test_ssh_command + test_ffmpeg_command)}")
                 log.debug(f"SSH test command stdout: {ret.stdout}")
                 log.debug(f"SSH test command stderr: {ret.stderr}")
-                with dbconn(config) as cur:
-                    cur.execute(
-                        f"INSERT INTO states (host_id, process_id, state) VALUES ({SQL_VAR_SIGN}, {SQL_VAR_SIGN}, {SQL_VAR_SIGN})",
-                        (hid, config["current_pid"], "bad"),
-                    )
-                continue
+                #with dbconn(config) as cur:
+                #    cur.execute(
+                #        f"INSERT INTO states (host_id, process_id, state) VALUES ({SQL_VAR_SIGN}, {SQL_VAR_SIGN}, {SQL_VAR_SIGN})",
+                #        (hid, config["current_pid"], "bad"),
+                #    )
+                #continue
             log.debug(f"SSH test succeeded with retcode {ret.returncode}")
 
         # If the host state is idle, we can use it immediately
@@ -457,7 +457,7 @@ def run_remote_command(
     """
     rffmpeg_ssh_command = generate_ssh_command(config, target_hostname)
     rffmpeg_ssh_command = [arg.replace('@', '', 1) if arg.startswith('@') else arg for arg in rffmpeg_ssh_command]
- 
+
     rffmpeg_command = list()
 
     # Add any pre commands
@@ -475,7 +475,7 @@ def run_remote_command(
         stdout = sys.stderr
     else:
         stdout = sys.stdout
-    
+
     rffmpeg_command.extend(map(shlex.quote, command_args))
 
     log.info(f"Running command on host '{target_hostname}' ({target_servername})")
